@@ -1,6 +1,8 @@
 package mafiaDeCuba.metier;
 
 import java.io.Serializable;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 public class Joueur implements Serializable
 {
@@ -12,9 +14,10 @@ public class Joueur implements Serializable
 	private Jeton role;
 	
 	/* CONSTRUCTEUR */
-	public Joueur(String prenom)
+	public Joueur(String prenom, int port)
 	{
 		this.prenom = prenom;
+		this.port = port;
 	}
 	
 	/* GETTERS & SETTERS */
@@ -48,6 +51,11 @@ public class Joueur implements Serializable
 	public void setPort(int port)
 	{
 		this.port = port;
+	}
+	
+	public int getPort()
+	{
+		return this.port;
 	}
 	
 	/* ToString */

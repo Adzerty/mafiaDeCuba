@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 
 import mafiaDeCuba.ihm.FrameHost;
@@ -22,7 +23,6 @@ public class ServeurMafiaDeCuba
 	private int portNumber; //9000 pour l'instant, peut etre autrechose apres
 	
 	private static ArrayList<Joueur> alJoueur; 	// list qui stock les joueurs
-	private ArrayList<Integer> alPortJoueur;	// list qui stock les ports des clients
 	
 	private static FrameLobbyHost fLobbyHost;	//Frame de lobby pour le host
 	
@@ -31,14 +31,13 @@ public class ServeurMafiaDeCuba
         //Arraylist comportant les ports de tous les clients connectés.
     	f.dispose();
         this.alJoueur = new ArrayList<Joueur>();
-        this.alPortJoueur = new ArrayList<Integer>();
         
         this.fLobbyHost = new FrameLobbyHost(this, this.alJoueur);
         this.portNumber = 9000;
         
         
         
-        Thread t = new Thread(new Runnable()
+        Thread t = new Thread(new Runnable() // Thread principal
         {
         		public void run()
         		{
@@ -72,15 +71,17 @@ public class ServeurMafiaDeCuba
         				//System.out.println(j1);
         				
         				//On ajoute le client à nos arraylist.
-        	            alPortJoueur.add(dp.getPort());
+ 
         	            alJoueur.add(j1);
         	            ServeurMafiaDeCuba.fLobbyHost.majIHM();
 
         	            int position = 0;
         	            boolean verifNewUser = false;
+        	            
+        	            // Tant que la partie n'a pas commence (on est dans le lobby)
         	            while(! aCommence)
         	            {
-        	                DatagramPacket dp2 = ServeurMafiaDeCuba.envoieMessage("Serveur : Joueur reçu avec succés !", dp);
+        	                DatagramPacket dp2 = ServeurMafiaDeCuba.envoieMessage("Serveur : Joueur reçu avec succes !", dp);
         	                ds.send(dp2);
         	                
         	            	// Reception du nouveau client
@@ -94,27 +95,22 @@ public class ServeurMafiaDeCuba
         	    				j.setPort(dp.getPort());
         	    			} catch (ClassNotFoundException e){e.printStackTrace();}
         	    			
-        	                //On parcourt notre aList de port
-        	                for (Integer i : alPortJoueur)
-        	                {
-        	                    if (!alPortJoueur.contains(dp.getPort())) //Si l'aL ne contient pas le port on dit qu'on ajoute un nouveau client
-        	                        verifNewUser = true;
-        	                    else //Sinon on récupère l'index du client (son port et son boolean)
-        	                        position = alPortJoueur.indexOf(i);
-        	                }
+    	                    if (!alJoueur.contains(j)) //Si l'aL ne contient pas le port on dit qu'on ajoute un nouveau client
+    	                        verifNewUser = true;
+    	                    else //Sinon on récupère l'index du client (son port et son boolean)
+    	                        position = alJoueur.indexOf(j);
 
         	                if (verifNewUser) //Si on doit ajouter un client
         	                {
-        	                	alPortJoueur.add(dp.getPort());
         	                	alJoueur.add(j);
-        	                    position = alPortJoueur.size() - 1;
-        	                    ServeurMafiaDeCuba.fLobbyHost.majIHM();
+        	                    position = alJoueur.size() - 1;
         	                    verifNewUser = false;
         	                }
-        	                
+        	               
+        	                ServeurMafiaDeCuba.fLobbyHost.majIHM();
         	                
         	            }
-        	            
+        	       
         	            
         	            /*
         	             *  final ByteArrayOutputStream baos = new ByteArrayOutputStream(6400);
@@ -126,6 +122,7 @@ public class ServeurMafiaDeCuba
         					// Send the packet
 
         	             */
+        	            
         	        }
         	        catch (IOException e)
         	        {
@@ -133,7 +130,37 @@ public class ServeurMafiaDeCuba
         	        }
         		}
         		});
+        
+        
+        Thread checkConnectionThread = new Thread( new Runnable() {
+        	public void run()
+        	{
+        		while(true)
+        		{
+        			ArrayList<Integer> alIndexJoueurDeco = new ArrayList<Integer>();
+	                for(Joueur jLoop : alJoueur)
+	                {
+	                
+	                	try { // On essaye de creer une socket avec le port de chaque joueur
+	                		  // Si cela marche ca veut dire que le port est libre donc que le joueur est deco
+	                		DatagramSocket dsTest = new DatagramSocket(jLoop.getPort());        		
+	                		dsTest.close();
+	                		alIndexJoueurDeco.add(alJoueur.indexOf(jLoop));
+	                	}catch(Exception e){} // Sinon cela veut dire que le joueur est co donc tout va bien
+	                }
+	                
+	                
+	                for(Integer ind : alIndexJoueurDeco){ alJoueur.remove((int)ind); } //Pour chacun des joueurs deco on les supprime de la liste
+	                ServeurMafiaDeCuba.fLobbyHost.majIHM();
+	                try
+					{
+						Thread.sleep(1000);
+					} catch (InterruptedException e){}
+        		}
+        	}
+        });
         t.start();
+        checkConnectionThread.start();
         
     }
 
@@ -154,4 +181,5 @@ public class ServeurMafiaDeCuba
     {
     	return ServeurMafiaDeCuba.fLobbyHost;
     }
+    
 }
