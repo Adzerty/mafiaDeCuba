@@ -2,8 +2,11 @@ package mafiaDeCuba.reseaux;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -43,57 +46,59 @@ public class ServeurMafiaDeCuba
         		{
         			try
         	        {
-        	        	/*
+        				
+        				/*
         	        	 * 
         	        	 * CONNEXION D'UN PREMIER JOUEUR
         	        	 */
-        	        	
-        	        	//Créer une socket pour recevoir le message
-        	            DatagramSocket ds = new DatagramSocket(portNumber);
-        	            byte[] buf = new byte[1024];
-        	            DatagramPacket dp = new DatagramPacket(buf, 1024);
-        	            
-        	            System.out.println("Serveur lancé !");
-        	            
-        	            
-        	            // Reception du message
-        	            ds.receive(dp);
-        	            ByteArrayInputStream baos = new ByteArrayInputStream(buf);
-        	            ObjectInputStream oos = new ObjectInputStream(baos);
-        	            Joueur j1 = null;
-        	            
-        				try
-        				{
-        					j1 = (Joueur)oos.readObject();
-        					j1.setiA(dp.getAddress());
-        				} catch (ClassNotFoundException e){e.printStackTrace();}
-        	            
-        				//System.out.println(j1);
         				
+        				ServerSocket serverSocket = new ServerSocket(portNumber);
+        				Socket sClient = serverSocket.accept();
+        				
+        		        ObjectOutputStream os = new ObjectOutputStream(sClient.getOutputStream());
+        		        ObjectInputStream is = new ObjectInputStream(sClient.getInputStream());
+        		        
+        		        Joueur j1 = null;
+						try
+						{
+							j1 = (Joueur) is.readObject();
+							j1.setSocket(sClient);
+						} catch (ClassNotFoundException e)
+						{
+							e.printStackTrace();
+						}
+
         				//On ajoute le client à nos arraylist.
         				System.out.println(j1);
         	            alJoueur.add(j1);
         	            ServeurMafiaDeCuba.fLobbyHost.majIHM();
+        	            
+        	            
 
         	            int position = 0;
         	            boolean verifNewUser = false;
         	            
+        	            
         	            // Tant que la partie n'a pas commence (on est dans le lobby)
         	            while(! aCommence)
         	            {
-        	                DatagramPacket dp2 = ServeurMafiaDeCuba.envoieMessage("Serveur : Joueur reçu avec succes !", dp);
-        	                ds.send(dp2);
+        	            	os.writeObject(new String("Serveur : Joueur connecte avec succes"));
         	                
         	            	// Reception du nouveau client
-        	                ds.receive(dp);
-        	                baos = new ByteArrayInputStream(buf);
-        	                oos = new ObjectInputStream(baos);
-        	                Joueur j = null;
-        	    			try
-        	    			{
-        	    				j = (Joueur)oos.readObject();
-        	    				j.setiA(dp.getAddress());
-        	    			} catch (ClassNotFoundException e){e.printStackTrace();}
+        	            	Socket sJoueur = serverSocket.accept();
+        	                
+        	            	os = new ObjectOutputStream(sJoueur.getOutputStream());
+            		        is = new ObjectInputStream(sJoueur.getInputStream());
+            		        
+            		        Joueur j = null;
+    						try
+    						{
+    							j = (Joueur) is.readObject();
+    							j.setSocket(sJoueur);
+    						} catch (ClassNotFoundException e)
+    						{
+    							e.printStackTrace();
+    						}
         	    			
     	                    if (!alJoueur.contains(j)) //Si l'aL ne contient pas le port on dit qu'on ajoute un nouveau client
     	                        verifNewUser = true;
@@ -137,42 +142,39 @@ public class ServeurMafiaDeCuba
         	public void run()
         	{
         		while(true)
-        		{
+        		{	
         			ArrayList<Integer> alIndexJoueurDeco = new ArrayList<Integer>();
 	                for(Joueur jLoop : alJoueur)
 	                {
-	                
-	                	try { // On essaye de creer une socket avec le port de chaque joueur
-	                		  // Si cela marche ca veut dire que le port est libre donc que le joueur est deco
-	                		DatagramSocket dsTest = new DatagramSocket(jLoop.getPort(),jLoop.getiA());        		
-	                		dsTest.close();
+	                	
+	                	try {
+	                		ObjectOutputStream o = new ObjectOutputStream(jLoop.getSocket().getOutputStream());
+	                		o.writeObject(new String("ping"));
+	                	}catch(Exception e)
+	                	{
 	                		alIndexJoueurDeco.add(alJoueur.indexOf(jLoop));
-	                	}catch(Exception e){} // Sinon cela veut dire que le joueur est co donc tout va bien
+	                	}
 	                }
-	                
-	                
+
 	                for(Integer ind : alIndexJoueurDeco){ alJoueur.remove((int)ind); } //Pour chacun des joueurs deco on les supprime de la liste
 	                ServeurMafiaDeCuba.fLobbyHost.majIHM();
+	                
 	                try
 					{
 						Thread.sleep(1000);
-					} catch (InterruptedException e){}
+					} catch (InterruptedException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
         		}
         	}
         });
+        
         t.start();
         checkConnectionThread.start();
         
     }
-
-    public static DatagramPacket envoieMessage(String s, DatagramPacket dp)
-    {
-        byte[] buf2 = new String(s).getBytes();
-        DatagramPacket dp1 = new DatagramPacket(buf2, buf2.length, dp.getAddress(), dp.getPort());
-
-        return dp1;
-    }
-    
     public static ArrayList<Joueur> getAlJoueurCo()
     {
     	return ServeurMafiaDeCuba.alJoueur;

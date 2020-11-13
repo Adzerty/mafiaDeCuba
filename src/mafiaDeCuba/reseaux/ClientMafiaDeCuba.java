@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Scanner;
 
 import mafiaDeCuba.metier.Joueur;
@@ -33,28 +34,21 @@ public class ClientMafiaDeCuba
 		      {
 		          portNumber = Integer.parseInt(port);
 
-		          InetAddress iA = InetAddress.getByName(ip);
-		          DatagramSocket ds = new DatagramSocket();
+		          Socket socket = new Socket(ip, portNumber);
 		          
 		          
-		          Joueur j = new Joueur(nom, ds.getLocalPort());
+		          Joueur j = new Joueur(nom);
 		          
-		          final ByteArrayOutputStream baos = new ByteArrayOutputStream(6400);
-		          final ObjectOutputStream oos = new ObjectOutputStream(baos);
-		          oos.writeObject(j);
-		          final byte[] data = baos.toByteArray();
-				
-		          final DatagramPacket packet = new DatagramPacket(data, data.length, iA, portNumber);
-		          ds.send(packet);
+		          ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+		          os.writeObject(j);
 
-		          
 		          // Reception et affichage du message venant du serveur
-		          byte[] buf = new byte[1024];
-		          DatagramPacket dp = new DatagramPacket(buf, 1024);
-		          ds.receive(dp);
-		          String recu = new String(dp.getData(), 0, dp.getLength());
-		          System.out.println(recu);
 		          
+		          ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
+		          String recu = (String) is.readObject();
+		          System.out.println(recu);
+		          //socket.close();
+ 
 
 		          /*
 		          while (! aCommence)
@@ -99,7 +93,6 @@ public class ClientMafiaDeCuba
 		          {
 		        	 
 		          }
-		          //ds.close();
 		      }
 		      catch(Exception e)
 		      {
