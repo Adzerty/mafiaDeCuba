@@ -71,7 +71,7 @@ public class ServeurMafiaDeCuba
         				//System.out.println(j1);
         				
         				//On ajoute le client à nos arraylist.
- 
+        				System.out.println(j1);
         	            alJoueur.add(j1);
         	            ServeurMafiaDeCuba.fLobbyHost.majIHM();
 
@@ -143,7 +143,7 @@ public class ServeurMafiaDeCuba
 	                
 	                	try { // On essaye de creer une socket avec le port de chaque joueur
 	                		  // Si cela marche ca veut dire que le port est libre donc que le joueur est deco
-	                		DatagramSocket dsTest = new DatagramSocket(jLoop.getPort());        		
+	                		DatagramSocket dsTest = new DatagramSocket(jLoop.getPort(), jLoop.getiA());        		
 	                		dsTest.close();
 	                		alIndexJoueurDeco.add(alJoueur.indexOf(jLoop));
 	                	}catch(Exception e){} // Sinon cela veut dire que le joueur est co donc tout va bien

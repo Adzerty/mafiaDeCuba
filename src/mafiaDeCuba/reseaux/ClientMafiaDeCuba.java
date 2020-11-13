@@ -37,7 +37,7 @@ public class ClientMafiaDeCuba
 		          DatagramSocket ds = new DatagramSocket();
 		          
 		          
-		          Joueur j = new Joueur(nom, ds.getPort());
+		          Joueur j = new Joueur(nom, ds.getPort(), ds.getInetAddress());
 		          
 		          final ByteArrayOutputStream baos = new ByteArrayOutputStream(6400);
 		          final ObjectOutputStream oos = new ObjectOutputStream(baos);

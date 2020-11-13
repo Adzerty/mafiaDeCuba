@@ -10,14 +10,16 @@ public class Joueur implements Serializable
 	private static final long serialVersionUID = 1L;
 	private String prenom;
 	private int port;
+	private InetAddress iA;
 	private int nbDiamantPris;
 	private Jeton role;
 	
 	/* CONSTRUCTEUR */
-	public Joueur(String prenom, int port)
+	public Joueur(String prenom, int port, InetAddress iA)
 	{
 		this.prenom = prenom;
 		this.port = port;
+		this.iA = iA;
 	}
 	
 	/* GETTERS & SETTERS */
@@ -58,6 +60,16 @@ public class Joueur implements Serializable
 		return this.port;
 	}
 	
+	public InetAddress getiA()
+	{
+		return iA;
+	}
+
+	public void setiA(InetAddress iA)
+	{
+		this.iA = iA;
+	}
+
 	/* ToString */
 	@Override
 	public String toString()
