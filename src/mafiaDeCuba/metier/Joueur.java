@@ -15,9 +15,10 @@ public class Joueur implements Serializable
 	private Jeton role;
 	
 	/* CONSTRUCTEUR */
-	public Joueur(String prenom)
+	public Joueur(String prenom, int port)
 	{
 		this.prenom = prenom;
+		this.port = port;
 	}
 	
 	/* GETTERS & SETTERS */

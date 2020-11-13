@@ -65,7 +65,6 @@ public class ServeurMafiaDeCuba
         				try
         				{
         					j1 = (Joueur)oos.readObject();
-        					j1.setPort(dp.getPort());
         					j1.setiA(dp.getAddress());
         				} catch (ClassNotFoundException e){e.printStackTrace();}
         	            
@@ -93,7 +92,6 @@ public class ServeurMafiaDeCuba
         	    			try
         	    			{
         	    				j = (Joueur)oos.readObject();
-        	    				j.setPort(dp.getPort());
         	    				j.setiA(dp.getAddress());
         	    			} catch (ClassNotFoundException e){e.printStackTrace();}
         	    			
