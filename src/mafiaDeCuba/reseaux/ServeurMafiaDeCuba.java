@@ -66,6 +66,7 @@ public class ServeurMafiaDeCuba
         				{
         					j1 = (Joueur)oos.readObject();
         					j1.setPort(dp.getPort());
+        					j1.setiA(dp.getAddress());
         				} catch (ClassNotFoundException e){e.printStackTrace();}
         	            
         				//System.out.println(j1);
@@ -93,6 +94,7 @@ public class ServeurMafiaDeCuba
         	    			{
         	    				j = (Joueur)oos.readObject();
         	    				j.setPort(dp.getPort());
+        	    				j.setiA(dp.getAddress());
         	    			} catch (ClassNotFoundException e){e.printStackTrace();}
         	    			
     	                    if (!alJoueur.contains(j)) //Si l'aL ne contient pas le port on dit qu'on ajoute un nouveau client
@@ -144,7 +146,7 @@ public class ServeurMafiaDeCuba
 	                
 	                	try { // On essaye de creer une socket avec le port de chaque joueur
 	                		  // Si cela marche ca veut dire que le port est libre donc que le joueur est deco
-	                		DatagramSocket dsTest = new DatagramSocket(jLoop.getsA());        		
+	                		DatagramSocket dsTest = new DatagramSocket(jLoop.getPort(),jLoop.getiA());        		
 	                		dsTest.close();
 	                		alIndexJoueurDeco.add(alJoueur.indexOf(jLoop));
 	                	}catch(Exception e){} // Sinon cela veut dire que le joueur est co donc tout va bien
