@@ -27,6 +27,10 @@ public class FrameJoin extends JFrame implements ActionListener
 		private JLabel lblIP;
 		private JTextField txtIP;
 		
+	private JPanel panelPortServeur;
+		private JLabel lblPort;
+		private JTextField txtPort;
+		
 	private JButton btnStart;
 
 	
@@ -57,12 +61,22 @@ public class FrameJoin extends JFrame implements ActionListener
 		this.panelIPServeur.add(this.lblIP);
 		this.panelIPServeur.add(this.txtIP);
 		
+		//panelIpServeur
+		this.panelPortServeur = new JPanel(new GridLayout(1,2));
+		this.lblPort = new JLabel("Le port du serveur : ");
+		this.txtPort = new JTextField();
+		this.txtPort.setEditable(true);
+				
+		this.panelPortServeur.add(this.lblPort);
+		this.panelPortServeur.add(this.txtPort);
+		
 		//BtnStart
 		this.btnStart = new JButton("Se connecter");
 		
-		this.setLayout(new GridLayout(3,1));
+		this.setLayout(new GridLayout(4,1));
 		this.add(this.panelNomJoueur);
 		this.add(this.panelIPServeur);
+		this.add(this.panelPortServeur);
 		this.add(this.btnStart);
 		this.btnStart.addActionListener(this);
 		
@@ -77,8 +91,9 @@ public class FrameJoin extends JFrame implements ActionListener
 	{
 		String pseudo = this.txtNomJoueur.getText();
 		String ip = this.txtIP.getText();
+		String port = this.txtPort.getText();
 		
-		ClientMafiaDeCuba client = new ClientMafiaDeCuba(pseudo, ip);
+		ClientMafiaDeCuba client = new ClientMafiaDeCuba(pseudo, ip, port);
 		this.dispose();
 	}
 	

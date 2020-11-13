@@ -22,7 +22,7 @@ public class ClientMafiaDeCuba
 	
 	private boolean aCommence;
 	
-  public ClientMafiaDeCuba(String nom, String ip)
+  public ClientMafiaDeCuba(String nom, String ip, String port)
   {
 	  
 	  Thread t = new Thread(new Runnable()
@@ -31,7 +31,7 @@ public class ClientMafiaDeCuba
 		  {
 			  try
 		      {
-		          portNumber = 9000;
+		          portNumber = Integer.parseInt(port);
 
 		          InetAddress iA = InetAddress.getByName(ip);
 		          DatagramSocket ds = new DatagramSocket();
