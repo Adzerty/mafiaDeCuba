@@ -74,7 +74,7 @@ public class Joueur implements Serializable
 	@Override
 	public String toString()
 	{
-		return "Joueur : " + this.prenom + '\n' + "Port : " + port;
+		return "Joueur : " + this.prenom + '\n' + "Port : " + port + " iAdress : " + iA;
 	}
 	
 	
