@@ -1,9 +1,9 @@
 package mafiaDeCuba.metier;
 
 import java.io.Serializable;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.Socket;
+
+import mafiaDeCuba.reseaux.ClientMafiaDeCuba;
 
 public class Joueur implements Serializable
 {
@@ -11,7 +11,6 @@ public class Joueur implements Serializable
 	private static final long serialVersionUID = 1L;
 	private String prenom;
 	private int port;
-	private Socket socket;
 	private int nbDiamantPris;
 	private Jeton role;
 	
@@ -21,6 +20,8 @@ public class Joueur implements Serializable
 		this.prenom = prenom;
 	}
 	
+	
+
 	/* GETTERS & SETTERS */
 	public String getPrenom()
 	{
@@ -58,22 +59,13 @@ public class Joueur implements Serializable
 	{
 		return this.port;
 	}
-	
-	public Socket getSocket()
-	{
-		return socket;
-	}
 
-	public void setSocket(Socket s)
-	{
-		this.socket = s;
-	}
 
 	/* ToString */
 	@Override
 	public String toString()
 	{
-		return "Joueur : " + this.prenom + '\n' + "Port : " + port + "Socket " + socket;
+		return "Joueur : " + this.prenom;
 	}
 	
 	

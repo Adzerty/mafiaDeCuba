@@ -1,16 +1,12 @@
 package mafiaDeCuba.reseaux;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.ArrayList;
 
+import mafiaDeCuba.ihm.FrameJoin;
+import mafiaDeCuba.ihm.FrameLobbyClient;
 import mafiaDeCuba.metier.Joueur;
 
 
@@ -21,11 +17,16 @@ public class ClientMafiaDeCuba
 	private String ip;
 	private int portNumber;
 	
+	private static FrameLobbyClient fLobbyClient;
+	
 	private boolean aCommence;
 	
-  public ClientMafiaDeCuba(String nom, String ip, String port)
+  public ClientMafiaDeCuba(String nom, String ip, String port, FrameJoin f)
   {
+	  f.dispose();
+	  Joueur j = new Joueur(nom);
 	  
+	  fLobbyClient = new FrameLobbyClient(this);
 	  Thread t = new Thread(new Runnable()
 	  {
 		  public void run()
@@ -35,64 +36,34 @@ public class ClientMafiaDeCuba
 		          portNumber = Integer.parseInt(port);
 
 		          Socket socket = new Socket(ip, portNumber);
-		          
-		          
-		          Joueur j = new Joueur(nom);
-		          
+		       
+		          // On envoit le port 
 		          ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+		          ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
+		          
 		          os.writeObject(j);
 
-		          // Reception et affichage du message venant du serveur
-		          
-		          ObjectInputStream is = new ObjectInputStream(socket.getInputStream());
-		          String recu = (String) is.readObject();
-		          System.out.println(recu);
+		          // Reception et affichage du message venant du serveur 
+		          while(!aCommence)
+		          {
+		        	  Object recu = is.readUnshared();
+		        	  
+		        	  if(recu instanceof ArrayList<?>)
+		        	  {
+							if(((ArrayList<?>)recu).get(0) instanceof Joueur)
+							{
+								fLobbyClient.majIHM((ArrayList<Joueur>)recu);
+							}
+		        	  }
+		        	  
+		        	  recu = new Object();
+			          //is = new ObjectInputStream(socket.getInputStream());
+			          //is.reset();
+		          }	
+
+
 		          //socket.close();
- 
 
-		          /*
-		          while (! aCommence)
-		          {
-		              //On lit un String qui DOIT CONTENIR un ENTIER (sinon il y aura une erreur)
-		              Scanner sc = new Scanner(System.in);
-		              String s = sc.nextLine();
-		              DatagramPacket dp = new DatagramPacket(s.getBytes(), s.length(), ia, portNumber);
-		              ds.send(dp);
-
-		              // Reception et affichage du message venant du serveur
-		              byte[] buf = new byte[1024];
-		              dp = new DatagramPacket(buf, 1024);
-		              ds.receive(dp);
-
-		              String recu = new String(dp.getData(), 0, dp.getLength());
-		              nbTry--;
-
-		              //Si il reste des essais
-		              if (nbTry != 0)
-		              {
-		                  //affiche le message envoyé par le serveur
-		                  System.out.println(recu);
-		                  //Si on a gagné on coupe le client
-		                  if (recu.equals("Gagne !"))
-		                  {
-		                      break;
-		                  }
-
-		                  //Sinon on affiche le nb d'essais restant
-		                  System.out.println("Il ne vous reste que " + nbTry + " essai(s)");
-		              }
-		          }
-
-		          //Si on n'a plus d'essai, on a perdu.
-		          if (nbTry == 0)
-		          {
-		              System.out.println("C'est perdu");
-		          }*/
-		          
-		          while(true)
-		          {
-		        	 
-		          }
 		      }
 		      catch(Exception e)
 		      {
@@ -102,7 +73,6 @@ public class ClientMafiaDeCuba
 	  });
 	  
 	  t.start();
-	  
       
   }
 }

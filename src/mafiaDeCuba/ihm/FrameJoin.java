@@ -93,8 +93,7 @@ public class FrameJoin extends JFrame implements ActionListener
 		String ip = this.txtIP.getText();
 		String port = this.txtPort.getText();
 		
-		ClientMafiaDeCuba client = new ClientMafiaDeCuba(pseudo, ip, port);
-		this.dispose();
+		ClientMafiaDeCuba client = new ClientMafiaDeCuba(pseudo, ip, port, this);
 	}
 	
 	public static void main(String[] args)

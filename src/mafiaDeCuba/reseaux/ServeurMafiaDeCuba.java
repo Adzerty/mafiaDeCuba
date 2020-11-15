@@ -23,154 +23,117 @@ public class ServeurMafiaDeCuba
 	private boolean aCommence; // false = on est dans le lobby | true = la partie a commencee
 	
 	private MafiaDeCuba metier;
-	private int portNumber; //9000 pour l'instant, peut etre autrechose apres
+	private int portNumber; // Port sur lequel est hébergée la partie
 	
-	private static ArrayList<Joueur> alJoueur; 	// list qui stock les joueurs
+	private static ArrayList<Joueur> alJoueur; 			// liste qui stock les joueurs
+	private static ArrayList<Socket> alSocketJoueur; 	// liste qui stock les sockets des joueurs
+	private static ArrayList<ObjectOutputStream> alObjectOutputStream; 	// list qui stock les OOS des joueurs
 	
 	private static FrameLobbyHost fLobbyHost;	//Frame de lobby pour le host
 	
     public ServeurMafiaDeCuba(int nbJoueur, boolean aNettoyeur, FrameHost f)
     {
-        //Arraylist comportant les ports de tous les clients connectés.
     	f.dispose();
-        this.alJoueur = new ArrayList<Joueur>();
-        
-        this.fLobbyHost = new FrameLobbyHost(this, this.alJoueur);
+    	
+    	// INITITALISATION
+        alJoueur = new ArrayList<Joueur>();
+        alSocketJoueur = new ArrayList<Socket>();
+        alObjectOutputStream = new ArrayList<ObjectOutputStream>();
         this.portNumber = 9000;
         
+        //On affiche le lobby
+        fLobbyHost = new FrameLobbyHost(this, alJoueur);
         
         
+        
+        
+        /* Premier thread
+         * Thread principal, il s'occupe de l'arrivée des joueurs et d'envoyer les objets aux joueurs
+         * 
+         */
         Thread t = new Thread(new Runnable() // Thread principal
         {
         		public void run()
         		{
         			try
         	        {
-        				
-        				/*
-        	        	 * 
-        	        	 * CONNEXION D'UN PREMIER JOUEUR
-        	        	 */
-        				
-        				ServerSocket serverSocket = new ServerSocket(portNumber);
-        				Socket sClient = serverSocket.accept();
-        				
-        		        ObjectOutputStream os = new ObjectOutputStream(sClient.getOutputStream());
-        		        ObjectInputStream is = new ObjectInputStream(sClient.getInputStream());
-        		        
-        		        Joueur j1 = null;
-						try
-						{
-							j1 = (Joueur) is.readObject();
-							j1.setSocket(sClient);
-						} catch (ClassNotFoundException e)
-						{
-							e.printStackTrace();
-						}
 
-        				//On ajoute le client à nos arraylist.
-        				System.out.println(j1);
-        	            alJoueur.add(j1);
-        	            ServeurMafiaDeCuba.fLobbyHost.majIHM();
-        	            
-        	            
-
-        	            int position = 0;
-        	            boolean verifNewUser = false;
-        	            
-        	            
+        				ServerSocket serverSocket = new ServerSocket(portNumber); //On ouvre le serveur
+        				
         	            // Tant que la partie n'a pas commence (on est dans le lobby)
         	            while(! aCommence)
-        	            {
-        	            	os.writeObject(new String("Serveur : Joueur connecte avec succes"));
-        	                
+        	            {   
         	            	// Reception du nouveau client
         	            	Socket sJoueur = serverSocket.accept();
         	                
-        	            	os = new ObjectOutputStream(sJoueur.getOutputStream());
-            		        is = new ObjectInputStream(sJoueur.getInputStream());
+        	            	ObjectOutputStream os = new ObjectOutputStream(sJoueur.getOutputStream());       	
+            		        ObjectInputStream is = new ObjectInputStream(sJoueur.getInputStream());
             		        
             		        Joueur j = null;
-    						try
+    						try // On récupère le joueur envoye par le client
     						{
     							j = (Joueur) is.readObject();
-    							j.setSocket(sJoueur);
-    						} catch (ClassNotFoundException e)
-    						{
-    							e.printStackTrace();
-    						}
-        	    			
-    	                    if (!alJoueur.contains(j)) //Si l'aL ne contient pas le port on dit qu'on ajoute un nouveau client
-    	                        verifNewUser = true;
-    	                    else //Sinon on récupère l'index du client (son port et son boolean)
-    	                        position = alJoueur.indexOf(j);
+    						} catch (ClassNotFoundException e){}
 
-        	                if (verifNewUser) //Si on doit ajouter un client
+        	                if (!alJoueur.contains(j)) //Si le joueur n'existe pas encore dans nos arraylist on l'ajoute
         	                {
         	                	alJoueur.add(j);
-        	                    position = alJoueur.size() - 1;
-        	                    verifNewUser = false;
+        	                	alSocketJoueur.add(sJoueur);
+        	                	alObjectOutputStream.add(os);  
         	                }
-        	               
-        	                System.out.println(j);
-        	                ServeurMafiaDeCuba.fLobbyHost.majIHM();
-        	                
         	            }
-        	       
         	            
-        	            /*
-        	             *  final ByteArrayOutputStream baos = new ByteArrayOutputStream(6400);
-        					final ObjectOutputStream oos = new ObjectOutputStream(baos);
-        					oos.writeObject(o);
-        					final byte[] data = baos.toByteArray();
-        					
-        					final DatagramPacket packet = new DatagramPacket(data, data.length);
-        					// Send the packet
-
-        	             */
+        	            serverSocket.close();
         	            
         	        }
-        	        catch (IOException e)
-        	        {
-        	            e.printStackTrace();
-        	        }
+        	        catch (IOException e){}
         		}
         		});
         
-        
+        /* Second thread
+         * Thread de ping, il s'occupe de vérifier que les joueurs présents le sont toujours
+         * 
+         */
         Thread checkConnectionThread = new Thread( new Runnable() {
         	public void run()
         	{
         		while(true)
         		{	
-        			ArrayList<Integer> alIndexJoueurDeco = new ArrayList<Integer>();
-	                for(Joueur jLoop : alJoueur)
+        			ArrayList<Integer> alIndexJoueurDeco = new ArrayList<Integer>(); // Arraylist qui va stocker les indice des joueurs absent
+	                for(Joueur jLoop : alJoueur) // Pour chaque joueur qu'on connait
 	                {
 	                	
-	                	try {
-	                		ObjectOutputStream o = new ObjectOutputStream(jLoop.getSocket().getOutputStream());
-	                		o.writeObject(new String("ping"));
-	                	}catch(Exception e)
+	                	try { // On essaye d'envoyer "ping" au joueur
+	                		ObjectOutputStream o = alObjectOutputStream.get(alJoueur.indexOf(jLoop));
+	                		o.writeObject(new String("ping")); 
+	                	}catch(Exception e) // Si on y parvient pas, c'est que le joueur est déco, on ajoute donc son indice à l'alIndexJoueurDeco
 	                	{
+	                		System.out.println("Joueur deco");
 	                		alIndexJoueurDeco.add(alJoueur.indexOf(jLoop));
 	                	}
 	                }
-
-	                for(Integer ind : alIndexJoueurDeco){ alJoueur.remove((int)ind); } //Pour chacun des joueurs deco on les supprime de la liste
-	                ServeurMafiaDeCuba.fLobbyHost.majIHM();
+	                
+	                for(Integer ind : alIndexJoueurDeco) // Pour chaque indice de l'alIndexJoueurDeco on retire cet indice de tous nos ALists
+	                { 
+	                	ServeurMafiaDeCuba.alJoueur.remove((int)ind); 
+	                	ServeurMafiaDeCuba.alSocketJoueur.remove((int)ind); 
+	                	ServeurMafiaDeCuba.alObjectOutputStream.remove((int)ind); 
+	                }
+    
+	                //On met à jour les lobbies clients et serveur
+	                ServeurMafiaDeCuba.majLobby();
 	                
 	                try
 					{
-						Thread.sleep(1000);
-					} catch (InterruptedException e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+						Thread.sleep(100);
+					} catch (InterruptedException e){}
+	                
+	                
         		}
         	}
         });
         
+        //On lance les threads
         t.start();
         checkConnectionThread.start();
         
@@ -183,6 +146,23 @@ public class ServeurMafiaDeCuba
     public static FrameLobbyHost getFLobby()
     {
     	return ServeurMafiaDeCuba.fLobbyHost;
+    }
+    
+    /*
+     * Méthode majLobby
+     * Met le lobby serveur à jour, puis à chaque joueur envoit l'arrayList de joueur pour que les clients mettent a jour leur lobby
+     */
+    public static void majLobby()
+    {
+    	for(ObjectOutputStream o : alObjectOutputStream)
+        {
+        	try
+			{
+				o.writeUnshared(ServeurMafiaDeCuba.alJoueur);
+			} catch (IOException e){}
+        }
+    	fLobbyHost.majIHM();
+    	
     }
     
 }

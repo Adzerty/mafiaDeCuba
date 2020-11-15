@@ -2,64 +2,61 @@ package mafiaDeCuba.ihm;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.List;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 
+import mafiaDeCuba.reseaux.ClientMafiaDeCuba;
 import mafiaDeCuba.metier.Joueur;
-import mafiaDeCuba.reseaux.ServeurMafiaDeCuba;
 
-
-public class FrameLobbyHost extends JFrame
+public class FrameLobbyClient extends JFrame
 {
+
 	private int largeurEcran, hauteurEcran;
 	private Dimension dimEcran;
 	
-	private ServeurMafiaDeCuba serveur;
+	private ClientMafiaDeCuba client;
 	
 	private ArrayList<Joueur> alJoueur;
 	
 	private JList listConnectes;
-	private JButton btnStart;
 	
-	public FrameLobbyHost(ServeurMafiaDeCuba serv, ArrayList<Joueur> alJ)
+	public FrameLobbyClient(ClientMafiaDeCuba client)
 	{
-		this.serveur = serv;
-		this.alJoueur = alJ;
+		this.client = client;
+		this.alJoueur = new ArrayList<Joueur>();
 		
 		this.dimEcran     = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
 		this.hauteurEcran = (int) dimEcran.getHeight();
 		this.largeurEcran = (int) dimEcran.getWidth();
 		
-		this.setTitle("Lobby (hébergeur)");
+		this.setTitle("Lobby (client)");
 		this.setLocation( (largeurEcran/2)-350, (hauteurEcran/2)-250);
-		this.setSize(700,500);
+		this.setSize(200,200);
 		this.setLayout(new BorderLayout());
 		
-		this.listConnectes = new JList(alJ.toArray());
+		this.listConnectes = new JList(alJoueur.toArray());
 		
 		this.add(this.listConnectes,BorderLayout.CENTER);
-		
-		this.btnStart = new JButton("Lancer");
-		this.add(this.btnStart, "South");
 		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setVisible(true);
 	}
 	
-	public void majIHM()
-	{
-		this.alJoueur = this.serveur.getAlJoueurCo();
-		this.listConnectes.setListData(this.alJoueur.toArray());
-	}
 	
 	public static void main(String[] args)
 	{
 		FrameLobbyHost fLobby = new FrameLobbyHost(null, null);
 	}
+	
+	public void majIHM(ArrayList<Joueur> al)
+	{
+		this.alJoueur = al;
+		this.listConnectes.setListData(this.alJoueur.toArray());
+	}
+
+
 
 }
