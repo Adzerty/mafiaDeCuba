@@ -19,7 +19,7 @@ public class ClientMafiaDeCuba
 	
 	private static FrameLobbyClient fLobbyClient;
 	
-	private boolean aCommence;
+	private static boolean aCommence;
 	
   public ClientMafiaDeCuba(String nom, String ip, String port, FrameJoin f)
   {
@@ -53,6 +53,16 @@ public class ClientMafiaDeCuba
 							if(((ArrayList<?>)recu).get(0) instanceof Joueur)
 							{
 								fLobbyClient.majIHM((ArrayList<Joueur>)recu);
+							}
+		        	  }
+		        	  
+		        	  if(recu instanceof String)
+		        	  {
+							if(recu.toString().equals("Partie commencée !"))
+							{
+								System.out.println(recu);
+								ClientMafiaDeCuba.aCommence = true;
+								System.out.println(aCommence);
 							}
 		        	  }
 		        	  

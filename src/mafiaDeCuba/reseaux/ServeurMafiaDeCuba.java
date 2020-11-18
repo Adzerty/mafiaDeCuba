@@ -20,7 +20,7 @@ import mafiaDeCuba.metier.MafiaDeCuba;
 public class ServeurMafiaDeCuba
 {
 	
-	private boolean aCommence; // false = on est dans le lobby | true = la partie a commencee
+	private static boolean aCommence; // false = on est dans le lobby | true = la partie a commencee
 	
 	private MafiaDeCuba metier;
 	private int portNumber; // Port sur lequel est hébergée la partie
@@ -64,22 +64,43 @@ public class ServeurMafiaDeCuba
         	            while(! aCommence)
         	            {   
         	            	// Reception du nouveau client
-        	            	Socket sJoueur = serverSocket.accept();
-        	                
-        	            	ObjectOutputStream os = new ObjectOutputStream(sJoueur.getOutputStream());       	
-            		        ObjectInputStream is = new ObjectInputStream(sJoueur.getInputStream());
-            		        
-            		        Joueur j = null;
-    						try // On récupère le joueur envoye par le client
-    						{
-    							j = (Joueur) is.readObject();
-    						} catch (ClassNotFoundException e){}
-
-        	                if (!alJoueur.contains(j)) //Si le joueur n'existe pas encore dans nos arraylist on l'ajoute
+        	            	try {
+        	            		serverSocket.setSoTimeout(1000);
+	        	            	Socket sJoueur = serverSocket.accept();
+	        	                
+	        	            	ObjectOutputStream os = new ObjectOutputStream(sJoueur.getOutputStream());       	
+	            		        ObjectInputStream is = new ObjectInputStream(sJoueur.getInputStream());
+	            		        
+	            		        Joueur j = null;
+	    						try // On récupère le joueur envoye par le client
+	    						{
+	    							j = (Joueur) is.readObject();
+	    						} catch (ClassNotFoundException e){}
+	
+	        	                if (!alJoueur.contains(j)) //Si le joueur n'existe pas encore dans nos arraylist on l'ajoute
+	        	                {
+	        	                	alJoueur.add(j);
+	        	                	alSocketJoueur.add(sJoueur);
+	        	                	alObjectOutputStream.add(os);  
+	        	                }
+        	            	}catch(Exception e) {}
+        	            }
+        	            
+        	            while(aCommence)
+        	            {
+        	            	System.out.println("lancé");
+        	            	for(Joueur jLoop : alJoueur) // Pour chaque joueur qu'on connait
         	                {
-        	                	alJoueur.add(j);
-        	                	alSocketJoueur.add(sJoueur);
-        	                	alObjectOutputStream.add(os);  
+        	                	try {
+        	                		ObjectOutputStream o = alObjectOutputStream.get(alJoueur.indexOf(jLoop));
+        	                		o.writeObject(new String("Partie commencée !")); 
+        	                	}catch(Exception e)
+        	                	{}
+        	                	
+        	                	try
+        						{
+        							Thread.sleep(6000);
+        						} catch (InterruptedException e){}
         	                }
         	            }
         	            
@@ -161,8 +182,12 @@ public class ServeurMafiaDeCuba
 				o.writeUnshared(ServeurMafiaDeCuba.alJoueur);
 			} catch (IOException e){}
         }
-    	fLobbyHost.majIHM();
-    	
+    	fLobbyHost.majIHM();	
+    }
+    
+    public static void startGame()
+    {
+    	aCommence = true;
     }
     
 }

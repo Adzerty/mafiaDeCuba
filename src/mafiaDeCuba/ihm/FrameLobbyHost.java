@@ -3,6 +3,8 @@ package mafiaDeCuba.ihm;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -14,7 +16,7 @@ import mafiaDeCuba.metier.Joueur;
 import mafiaDeCuba.reseaux.ServeurMafiaDeCuba;
 
 
-public class FrameLobbyHost extends JFrame
+public class FrameLobbyHost extends JFrame implements ActionListener
 {
 	private int largeurEcran, hauteurEcran;
 	private Dimension dimEcran;
@@ -45,7 +47,9 @@ public class FrameLobbyHost extends JFrame
 		this.add(this.listConnectes,BorderLayout.CENTER);
 		
 		this.btnStart = new JButton("Lancer");
+		this.btnStart.addActionListener(this);
 		this.add(this.btnStart, "South");
+		
 		
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setVisible(true);
@@ -60,6 +64,12 @@ public class FrameLobbyHost extends JFrame
 	public static void main(String[] args)
 	{
 		FrameLobbyHost fLobby = new FrameLobbyHost(null, null);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		ServeurMafiaDeCuba.startGame();
 	}
 
 }
